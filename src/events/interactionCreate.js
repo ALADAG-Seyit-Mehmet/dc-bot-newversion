@@ -4,6 +4,194 @@ const config = require('../../config.json');
 const fs = require('fs').promises;
 const path = require('path');
 
+// Ticket oluşturma işleyicisi
+async function handleCreateTicket(interaction) {
+    // Bot yetkisi kontrolü
+    const botMember = interaction.guild?.members?.me;
+    if (!botMember || !botMember.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
+        await interaction.reply({
+            content: '⚠️ Hata: Kanalları yönetme iznim yok! Lütfen yetkilerimi kontrol edin.',
+            ephemeral: true
+        });
+        return;
+    }
+
+    try {
+        // Destek rolü kontrolü
+        if (!config.TICKET_DESTEK_ROLU_ID) {
+            throw new Error('TICKET_DESTEK_ROLU_ID config.json dosyasında tanımlanmamış!');
+        }
+
+        // Ticket kanalı oluştur
+        const ticketChannel = await interaction.guild.channels.create({
+            name: `ticket-${interaction.user.username}`,
+            type: ChannelType.GuildText,
+            parent: interaction.channel.parent,
+            permissionOverwrites: [
+                {
+                    id: interaction.guild.id, // @everyone rolü
+                    deny: [PermissionsBitField.Flags.ViewChannel],
+                },
+                {
+                    id: interaction.user.id,
+                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
+                },
+                {
+                    id: config.TICKET_DESTEK_ROLU_ID,
+                    allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
+                },
+            ],
+        });
+
+        const closeButton = new ButtonBuilder()
+            .setCustomId('close-ticket')
+            .setLabel('Ticket\'ı Kapat')
+            .setStyle(ButtonStyle.Danger);
+
+        const row = new ActionRowBuilder()
+            .addComponents(closeButton);
+
+        const embed = new EmbedBuilder()
+            .setTitle('🎫 Destek Talebi')
+            .setDescription(`Merhaba ${interaction.user},\nDestek ekibimiz en kısa sürede sizinle ilgilenecektir.\nTicket'ı kapatmak için aşağıdaki butonu kullanabilirsiniz.`)
+            .setColor('#5865F2')
+            .setTimestamp();
+
+        await ticketChannel.send({
+            content: `${interaction.user} | <@&${config.TICKET_DESTEK_ROLU_ID}>`,
+            embeds: [embed],
+            components: [row]
+        });
+
+        await interaction.reply({
+            content: `Ticket kanalınız oluşturuldu: ${ticketChannel}`,
+            ephemeral: true
+        });
+
+        // Log kanalına bilgi gönder
+        await sendLogEmbed(interaction.client, {
+            title: '🎫 Yeni Ticket Oluşturuldu',
+            color: '#5865F2',
+            fields: [
+                { name: 'Oluşturan', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
+                { name: 'Kanal', value: `${ticketChannel.name} (${ticketChannel.id})`, inline: true }
+            ],
+            thumbnail: interaction.user.displayAvatarURL({ dynamic: true })
+        });
+
+    } catch (error) {
+        console.error('Ticket oluşturma hatası:', error);
+        await interaction.reply({
+            content: '❌ Ticket oluşturulurken bir hata oluştu. Lütfen yöneticiye bildirin.',
+            ephemeral: true
+        });
+
+        // Hata logunu gönder
+        await sendLogEmbed(interaction.client, {
+            title: '🚨 Ticket Sistemi Hatası',
+            color: '#ff0000',
+            description: 'Ticket oluşturulurken bir hata meydana geldi.',
+            fields: [
+                { name: 'Kullanıcı', value: `${interaction.user.tag} (${interaction.user.id})` },
+                { name: 'Hata', value: `\`\`\`\n${error.stack || error.message}\n\`\`\`` }
+            ]
+        });
+    }
+}
+
+// Ticket kapatma işleyicisi
+async function handleCloseTicket(interaction) {
+    try {
+        const confirmButton = new ButtonBuilder()
+            .setCustomId('confirm-close')
+            .setLabel('Evet, Kapat')
+            .setStyle(ButtonStyle.Danger);
+
+        const cancelButton = new ButtonBuilder()
+            .setCustomId('cancel-close')
+            .setLabel('İptal')
+            .setStyle(ButtonStyle.Secondary);
+
+        const row = new ActionRowBuilder()
+            .addComponents(confirmButton, cancelButton);
+
+        await interaction.reply({
+            content: 'Bu ticket\'ı kapatmak istediğinize emin misiniz?',
+            components: [row],
+            ephemeral: true
+        });
+    } catch (error) {
+        console.error('Ticket kapatma hatası:', error);
+        await interaction.reply({
+            content: '❌ Ticket kapatma işlemi başlatılırken bir hata oluştu.',
+            ephemeral: true
+        });
+    }
+}
+
+// Ticket kapatmayı onayla
+async function handleConfirmClose(interaction) {
+    try {
+        await interaction.reply({
+            content: 'Ticket 10 saniye içinde kapatılacak...',
+            ephemeral: true
+        });
+
+        // Transcript oluştur
+        const messages = await interaction.channel.messages.fetch();
+        let transcript = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ticket Transcript</title></head><body>';
+        transcript += `<h1>Ticket: ${interaction.channel.name}</h1><div class="messages">`;
+
+        messages.reverse().forEach(msg => {
+            transcript += `<div class="message">
+                <strong>${msg.author.tag}</strong> [${msg.createdAt.toLocaleString()}]<br>
+                ${msg.content}<br>
+            </div>`;
+        });
+
+        transcript += '</div></body></html>';
+
+        // Transcript dosyasını kaydet
+        const transcriptPath = path.join(__dirname, `../../transcript-${interaction.channel.name}.html`);
+        await fs.writeFile(transcriptPath, transcript);
+
+        // Log gönder
+        await sendLogEmbed(interaction.client, {
+            title: '🎫 Ticket Kapatıldı',
+            color: '#ff6b6b',
+            fields: [
+                { name: 'Ticket', value: interaction.channel.name, inline: true },
+                { name: 'Kapatan', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true }
+            ],
+            thumbnail: interaction.user.displayAvatarURL({ dynamic: true })
+        });
+
+        // Transcript'i log kanalına gönder
+        if (config.LOG_KANALI_ID) {
+            const logChannel = await interaction.client.channels.fetch(config.LOG_KANALI_ID);
+            if (logChannel) {
+                await logChannel.send({
+                    content: `${interaction.channel.name} ticket transkripi:`,
+                    files: [transcriptPath]
+                });
+            }
+        }
+
+        // Temizlik ve kapatma
+        setTimeout(async () => {
+            await fs.unlink(transcriptPath).catch(console.error);
+            await interaction.channel.delete().catch(console.error);
+        }, 10000);
+
+    } catch (error) {
+        console.error('Ticket kapatma onay hatası:', error);
+        await interaction.reply({
+            content: '❌ Ticket kapatılırken bir hata oluştu.',
+            ephemeral: true
+        });
+    }
+}
+
 module.exports = {
     name: Events.InteractionCreate,
     async execute(interaction) {
@@ -93,6 +281,67 @@ module.exports = {
 
         // Button interactionları için handler
         if (interaction.isButton()) {
+            // Doğrulama butonu
+            if (interaction.customId === 'verify-button') {
+                try {
+                    // Rol ID kontrolü
+                    if (!config.DOGRULANMIS_UYE_ROLU_ID) {
+                        await interaction.reply({
+                            content: '❌ Doğrulanmış üye rolü yapılandırılmamış! Lütfen bir yöneticiye bildirin.',
+                            ephemeral: true
+                        });
+                        return;
+                    }
+
+                    const member = interaction.member;
+
+                    // Zaten role sahip mi kontrol et
+                    if (member.roles.cache.has(config.DOGRULANMIS_UYE_ROLU_ID)) {
+                        await interaction.reply({
+                            content: '✅ Zaten doğrulanmış bir üyesin!',
+                            ephemeral: true
+                        });
+                        return;
+                    }
+
+                    // Bot'un rol verme yetkisi var mı kontrol et
+                    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+                        await interaction.reply({
+                            content: '❌ Bot\'un rol verme yetkisi yok! Lütfen bir yöneticiye bildirin.',
+                            ephemeral: true
+                        });
+                        return;
+                    }
+
+                    // Rolü ver
+                    await member.roles.add(config.DOGRULANMIS_UYE_ROLU_ID);
+
+                    // Başarılı mesajı gönder
+                    await interaction.reply({
+                        content: '✅ Başarıyla doğrulandın! Artık sunucuya erişebilirsin.',
+                        ephemeral: true
+                    });
+
+                    // Log gönder
+                    await sendLogEmbed(interaction.client, {
+                        title: '✅ Yeni Doğrulanmış Üye',
+                        color: '#00FF00',
+                        fields: [
+                            { name: 'Kullanıcı', value: `${interaction.user.tag} (${interaction.user.id})` }
+                        ],
+                        thumbnail: interaction.user.displayAvatarURL({ dynamic: true })
+                    });
+
+                } catch (error) {
+                    console.error('Doğrulama hatası:', error);
+                    await interaction.reply({
+                        content: '❌ Doğrulama işlemi sırasında bir hata oluştu! Lütfen daha sonra tekrar dene.',
+                        ephemeral: true
+                    });
+                }
+                return;
+            }
+
             // Ticket oluşturma butonu
             if (interaction.customId === 'create_ticket') {
                 // Ensure bot has ManageChannels permission before creating a channel

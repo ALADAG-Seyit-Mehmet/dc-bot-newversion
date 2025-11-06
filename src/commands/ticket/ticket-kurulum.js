@@ -20,7 +20,7 @@ module.exports = {
             .setFooter({ text: interaction.guild.name, iconURL: interaction.guild.iconURL({ dynamic: true }) });
 
         const button = new ButtonBuilder()
-            .setCustomId('create_ticket')
+            .setCustomId('create-ticket')
             .setLabel('Ticket Oluştur')
             .setEmoji('🎫')
             .setStyle(ButtonStyle.Primary);

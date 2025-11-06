@@ -1,5 +1,15 @@
 {
   "LOG_KANALI_ID": "KANAL_ID_BURAYA",
   "TICKET_DESTEK_ROLU_ID": "ROL_ID_BURAYA",
-  "LINK_PAYLASABILIR_ROL_ID": "ROL_ID_BURAYA"
+  "LINK_PAYLASABILIR_ROL_ID": "ROL_ID_BURAYA",
+  "HOSGELDIN_KANALI_ID": "HOSGELDIN_KANAL_ID",
+  "HOSGELDIN_MESAJI": "Sunucumuza hoş geldin {kullanici}! Seninle birlikte {uyeSayisi} kişiyiz.",
+  "AYRILMA_KANALI_ID": "AYRILMA_KANAL_ID",
+  "AYRILMA_MESAJI": "{kullaniciAdi} aramızdan ayrıldı... Hoşçakal.",
+  "YENI_UYE_ROLU_ID": "YENI_UYE_ROL_ID",
+  "STATS_CATEGORY_ID": "",
+  "STATS_TOTAL_ID": "",
+  "STATS_ONLINE_ID": "",
+  "STATS_BOT_ID": "",
+  "DOGRULANMIS_UYE_ROLU_ID": ""
 }

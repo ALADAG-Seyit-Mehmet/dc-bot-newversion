@@ -3,7 +3,7 @@ const path = require('path');
 
 const db = new Database(path.join(__dirname, 'levels.db'));
 
-// Tablo oluştur
+// Tablolar oluştur
 db.exec(`
     CREATE TABLE IF NOT EXISTS kullanicilar (
         user_id TEXT,
@@ -14,7 +14,31 @@ db.exec(`
         last_daily TEXT DEFAULT '0',
         last_work TEXT DEFAULT '0',
         PRIMARY KEY (user_id, guild_id)
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS tepki_rolleri (
+        message_id TEXT,
+        emoji TEXT,
+        role_id TEXT,
+        PRIMARY KEY (message_id, emoji)
+    );
+
+    CREATE TABLE IF NOT EXISTS market_items (
+        guild_id TEXT,
+        role_id TEXT,
+        price INTEGER,
+        PRIMARY KEY (role_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS giveaways (
+        message_id TEXT PRIMARY KEY,
+        guild_id TEXT,
+        channel_id TEXT,
+        end_time TEXT,
+        winner_count INTEGER,
+        prize TEXT,
+        is_ended BOOLEAN DEFAULT 0
+    );
 `);
 
 // Eğer eski tablolarda yeni sütunlar yoksa ekle (ALTER TABLE kullanalım)
@@ -111,6 +135,60 @@ function checkLevelUp(currentXP, currentLevel) {
     return currentXP >= requiredXP;
 }
 
+// Tepki Rolleri fonksiyonları
+function addReactionRole(messageId, emoji, roleId) {
+    return db.prepare('INSERT OR REPLACE INTO tepki_rolleri (message_id, emoji, role_id) VALUES (?, ?, ?)').run(messageId, emoji, roleId);
+}
+
+function getReactionRole(messageId, emoji) {
+    return db.prepare('SELECT * FROM tepki_rolleri WHERE message_id = ? AND emoji = ?').get(messageId, emoji);
+}
+
+function removeReactionRole(messageId, emoji) {
+    return db.prepare('DELETE FROM tepki_rolleri WHERE message_id = ? AND emoji = ?').run(messageId, emoji);
+}
+
+// Market fonksiyonları
+function addMarketItem(guildId, roleId, price) {
+    return db.prepare('INSERT OR REPLACE INTO market_items (guild_id, role_id, price) VALUES (?, ?, ?)').run(guildId, roleId, price);
+}
+
+function removeMarketItem(roleId) {
+    return db.prepare('DELETE FROM market_items WHERE role_id = ?').run(roleId);
+}
+
+function getMarketItems(guildId) {
+    return db.prepare('SELECT * FROM market_items WHERE guild_id = ?').all(guildId);
+}
+
+function getMarketItem(roleId) {
+    return db.prepare('SELECT * FROM market_items WHERE role_id = ?').get(roleId);
+}
+
+function purchaseItem(userId, guildId, price) {
+    return db.prepare('UPDATE kullanicilar SET balance = balance - ? WHERE user_id = ? AND guild_id = ? AND balance >= ?').run(price, userId, guildId, price);
+}
+
+// Çekiliş fonksiyonları
+function createGiveaway(messageId, guildId, channelId, endTime, winnerCount, prize) {
+    return db.prepare(`
+        INSERT INTO giveaways (message_id, guild_id, channel_id, end_time, winner_count, prize, is_ended)
+        VALUES (?, ?, ?, ?, ?, ?, 0)
+    `).run(messageId, guildId, channelId, endTime, winnerCount, prize);
+}
+
+function getActiveGiveaways() {
+    return db.prepare('SELECT * FROM giveaways WHERE is_ended = 0 AND end_time <= ?').all(new Date().toISOString());
+}
+
+function endGiveaway(messageId) {
+    return db.prepare('UPDATE giveaways SET is_ended = 1 WHERE message_id = ?').run(messageId);
+}
+
+function getGiveaway(messageId) {
+    return db.prepare('SELECT * FROM giveaways WHERE message_id = ?').get(messageId);
+}
+
 module.exports = {
     getUser,
     createUser,
@@ -125,7 +203,22 @@ module.exports = {
     setLastDaily,
     setLastWork,
     transferBalance,
-    getRichList
+    getRichList,
+    // Reaction Roles exports
+    addReactionRole,
+    getReactionRole,
+    removeReactionRole,
+    // Market exports
+    addMarketItem,
+    removeMarketItem,
+    getMarketItems,
+    getMarketItem,
+    purchaseItem,
+    // Giveaway exports
+    createGiveaway,
+    getActiveGiveaways,
+    endGiveaway,
+    getGiveaway
 };
 
 // Sağlık kontrolü için basit bir ping fonksiyonu

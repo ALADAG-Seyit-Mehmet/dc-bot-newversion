@@ -1,83 +1,176 @@
-# Discord Bot - Yeni Versiyon
+# Discord.js v14 Gelişmiş Bot
 
-Bu proje, Discord.js v14 kullanarak geliştirilmiş modern ve modüler bir Discord botudur. Bot, eğlence, ekonomi, moderasyon, seviye sistemi, ticket sistemi ve yönetim komutları gibi çeşitli özellikler sunmaktadır.
+Bu bot, Discord.js v14 kullanılarak geliştirilmiş, çoklu modül ve özellik içeren kapsamlı bir Discord botudur.
 
-## Özellikler
+## 🌟 Özellikler
 
-### Eğlence Komutları
-- `ping`: Botun yanıt süresini kontrol eder.
-- `soyle`: Botun belirttiğiniz metni söylemesini sağlar.
-- `tas-kagit-makas`: Taş-kağıt-makas oyunu oynar.
-- `zar-at`: Zar atar.
-- `yazi-tura`: Yazı-tura atar.
+### 🎫 Ticket Sistemi
+- `/ticket-kurulum` komutu ile kolay kurulum
+- Özelleştirilebilir destek rolü
+- Otomatik transcript oluşturma
+- Kapsamlı log sistemi
 
-### Ekonomi Komutları
-- `balance`: Kullanıcının bakiyesini gösterir.
-- `daily`: Günlük ödül alır.
-- `work`: Çalışarak para kazanır.
-- `transfer`: Başka bir kullanıcıya para transfer eder.
-- `richlist`: En zengin kullanıcıları listeler.
+### ⭐ Seviye Sistemi
+- Otomatik XP kazanma sistemi
+- `/rank` ile seviye görüntüleme
+- `/leaderboard` ile en yüksek seviyeli üyeler
+- Özelleştirilebilir XP oranları
 
-### Moderasyon Komutları
-- `ban`: Kullanıcıyı banlar.
-- `kick`: Kullanıcıyı sunucudan atar.
-- `mute`: Kullanıcıyı susturur.
-- `unmute`: Kullanıcının susturmasını kaldırır.
-- `clear`: Mesajları temizler.
-- `temizle`: Belirli sayıda mesajı siler.
+### 💰 Ekonomi Sistemi
+- `/balance` ile bakiye görüntüleme
+- `/daily` günlük ödül sistemi
+- `/work` çalışma sistemi
+- `/transfer` para transfer sistemi
+- `/richlist` zenginler listesi
 
-### Seviye Komutları
-- `rank`: Kullanıcının seviyesini gösterir.
-- `leaderboard`: Seviye lider tablosunu gösterir.
+### 🛍️ Market Sistemi
+- Rol satın alma sistemi
+- `/market` ile ürünleri listeleme
+- `/market-ekle` ve `/market-kaldir` yönetim komutları
+- Bakiye-bazlı alışveriş
 
-### Ticket Sistemi
-- `ticket-kurulum`: Ticket sistemini kurar.
+### 🎉 Çekiliş Sistemi
+- `/cekilis-baslat` ile kolay çekiliş
+- Otomatik kazanan seçimi
+- Veritabanı destekli kalıcı çekilişler
+- Özelleştirilebilir kazanan sayısı
 
-### Yönetim Komutları
-- `checkup`: Botun durumunu kontrol eder.
+### ✅ Doğrulama Sistemi
+- Buton-bazlı kolay doğrulama
+- `/dogrulama-kurulum` ile hızlı kurulum
+- Özelleştirilebilir doğrulanmış üye rolü
+- Log sistemi entegrasyonu
 
-### Diğer Özellikler
-- Otomatik moderasyon (yasaklı kelimeler filtresi).
-- Kullanıcı giriş/çıkış logları.
-- Mesaj güncelleme/silme logları.
-- Veritabanı desteği (SQLite).
+### 📊 Sunucu İstatistikleri
+- Otomatik güncellenen ses kanalları
+- Toplam üye sayacı
+- Çevrimiçi üye sayacı
+- Bot sayacı
 
-## Kurulum
+### 🎭 Tepki Rolleri
+- `/tepki-rol-ekle` ile kolay kurulum
+- Emoji ile rol verme/alma
+- Özel emoji desteği
+- Veritabanı entegrasyonu
 
-1. Bu projeyi klonlayın veya indirin.
-2. Gerekli bağımlılıkları yükleyin:
-   ```
-   npm install
-   ```
-3. `config.json` dosyasını düzenleyin ve bot tokenınızı ekleyin.
-4. `.env` dosyasını oluşturun ve gerekli çevre değişkenlerini ayarlayın (örneğin, veritabanı yolu).
+### 👮 Moderasyon Komutları
+- Ban, Kick, Mute sistemleri
+- Toplu mesaj silme
+- Yasaklı kelime filtresi
+- Detaylı log sistemi
 
-## Yapılandırma
+### 🎮 Eğlence Komutları
+- `/tas-kagit-makas`: Klasik oyun
+- `/yazi-tura`: Yazı tura atma
+- `/zar-at`: Zar atma
+- `/soyle`: Bot tekrarlama
 
-- `config.json`: Botun temel yapılandırmasını içerir (token, prefix, vb.).
-- `src/data/yasakliKelimeler.json`: Yasaklı kelimeler listesi.
-- Veritabanı: `src/database.js` ile SQLite kullanılır.
+## 📋 Gereksinimler
 
-## Çalıştırma
+- Node.js v16.9.0 veya üstü
+- Discord.js v14
+- SQLite veritabanı
+- better-sqlite3 paketi
 
-Komutları dağıtmak için:
+## ⚙️ Kurulum
+
+1. Repoyu klonlayın:
+```bash
+git clone https://github.com/ALADAG-Seyit-Mehmet/dc-bot-newversion.git
+cd dc-bot-newversion
 ```
-npm run deploy
+
+2. Bağımlılıkları yükleyin:
+```bash
+npm install
 ```
 
-Botu başlatmak için:
+3. `.env` dosyasını oluşturun:
+```env
+TOKEN=your_bot_token_here
 ```
-npm start
+
+4. `config.json` dosyasını düzenleyin:
+```json
+{
+  "LOG_KANALI_ID": "log_kanal_id",
+  "TICKET_DESTEK_ROLU_ID": "destek_rol_id",
+  "DOGRULANMIS_UYE_ROLU_ID": "dogrulanmis_rol_id",
+  "HOSGELDIN_KANALI_ID": "hosgeldin_kanal_id",
+  "AYRILMA_KANALI_ID": "ayrilma_kanal_id"
+}
 ```
 
-## Katkıda Bulunma
+5. Slash komutlarını yükleyin:
+```bash
+node src/deploy-commands.js
+```
 
-Katkıda bulunmak için lütfen bir pull request oluşturun. Büyük değişiklikler için önce bir issue açın.
+6. Botu başlatın:
+```bash
+node src/index.js
+```
 
-## Lisans
+## 🔧 Bot İzinleri
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+Bot'un ihtiyaç duyduğu izinler:
+- Mesajları Yönet
+- Kanalları Yönet
+- Rolleri Yönet
+- Üyeleri At
+- Üyeleri Yasakla
+- Üyeleri Sustur
+- Mesaj Geçmişini Gör
 
-## İletişim
+## 🎯 Gerekli Intents
 
-Sorularınız için [GitHub Issues](https://github.com/ALADAG-Seyit-Mehmet/dc-bot-newversion/issues) kullanabilirsiniz.
+- GUILDS
+- GUILD_MEMBERS
+- GUILD_MESSAGES
+- GUILD_MESSAGE_REACTIONS
+- MESSAGE_CONTENT
+
+## 📚 Veritabanı Yapısı
+
+### kullanicilar tablosu
+- user_id (TEXT)
+- guild_id (TEXT)
+- xp (INTEGER)
+- level (INTEGER)
+- balance (INTEGER)
+- last_daily (TEXT)
+- last_work (TEXT)
+
+### tepki_rolleri tablosu
+- message_id (TEXT)
+- emoji (TEXT)
+- role_id (TEXT)
+
+### market_items tablosu
+- guild_id (TEXT)
+- role_id (TEXT)
+- price (INTEGER)
+
+### giveaways tablosu
+- message_id (TEXT)
+- guild_id (TEXT)
+- end_time (TEXT)
+- winner_count (INTEGER)
+- prize (TEXT)
+- is_ended (BOOLEAN)
+
+## 🤝 Katkıda Bulunma
+
+1. Projeyi forklayın
+2. Feature branch oluşturun (`git checkout -b feature/YeniOzellik`)
+3. Değişikliklerinizi commit edin (`git commit -m 'Yeni özellik eklendi'`)
+4. Branch'i push edin (`git push origin feature/YeniOzellik`)
+5. Pull Request açın
+
+## 📜 Lisans
+
+Bu proje MIT lisansı altında dağıtılmaktadır.
+
+## 💬 Destek
+
+Sorularınız için Issues bölümünü kullanabilir veya GitHub üzerinden iletişime geçebilirsiniz.

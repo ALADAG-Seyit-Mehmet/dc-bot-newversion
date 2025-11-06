@@ -1,0 +1,21 @@
+{
+    "yasakliKelimeler": [
+        "küfür1",
+        "küfür2",
+        "hakaret1",
+        "hakaret2"
+    ],
+    "yasakliLinkler": [
+        "porn",
+        "xxx",
+        "betting",
+        "casino",
+        "warez"
+    ],
+    "guvenliDomainler": [
+        "discord.com",
+        "discordapp.com",
+        "github.com",
+        "youtube.com"
+    ]
+}

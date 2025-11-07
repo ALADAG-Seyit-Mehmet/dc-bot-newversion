@@ -26,10 +26,21 @@ const rest = new REST().setToken(process.env.TOKEN);
     try {
         console.log(`${commands.length} adet komut yükleniyor...`);
 
-        const data = await rest.put(
-            Routes.applicationCommands(process.env.CLIENT_ID),
-            { body: commands },
-        );
+        // If GUILD_ID is present deploy to that guild (instant). Otherwise deploy globally (can take up to 1 hour).
+        let data;
+        if (process.env.GUILD_ID) {
+            console.log('GUILD_ID bulundu, komutlar belirtilen sunucuya (guild) yüklenecek...');
+            data = await rest.put(
+                Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
+                { body: commands },
+            );
+        } else {
+            console.log('GUILD_ID yok — komutlar global olarak yüklenecek (yayılma ~1 saat sürebilir)...');
+            data = await rest.put(
+                Routes.applicationCommands(process.env.CLIENT_ID),
+                { body: commands },
+            );
+        }
 
         console.log(`${data.length} adet komut başarıyla yüklendi!`);
     } catch (error) {

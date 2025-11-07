@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "deploy": "node src/deploy-commands.js"
+    "deploy": "node src/deploy-commands.js",
+    "postinstall": "npm rebuild better-sqlite3 --build-from-source",
+    "heroku-postbuild": "npm rebuild better-sqlite3 --build-from-source"
   },
   "dependencies": {
     "better-sqlite3": "^9.0.0",
